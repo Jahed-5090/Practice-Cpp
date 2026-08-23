@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "WeightedGraph",
+      "request": "launch",
+      "mainClass": "WeightedGraph",
+      "projectName": "helloworld_74338f31"
+    },
+    {
+      "type": "java",
+      "name": "helloworld",
+      "request": "launch",
+      "mainClass": "helloworld",
+      "projectName": "helloworld_74338f31"
+    },
+    {
+      "name": "🚀 Run & Debug Helloworld",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/helloworld",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "lldb",
+      "preLaunchTask": "build helloworld"
+    }
+  ]
+}
