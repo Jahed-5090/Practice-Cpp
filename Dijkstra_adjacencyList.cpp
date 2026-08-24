@@ -1,7 +1,8 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/*
+/* 
+Dijkstra's Algorithm->Adjacency List way better than edgelist .
 defualt priority_queue  in cpp is max_heap.
 normal max priority_queue : priority_queue<data_type> pq ;
 min priority_queue :        priority_queue<int,vector<int>,greater<int>> pq
@@ -34,35 +35,36 @@ public:
     }
 };
 
-void dijkstra(int src, int v, map<int, vector<pair<int,int>>>& adjlist)
+void dijkstra(int src, int v, map<int, vector<pair<int, int>>> &adjlist)
 {
 
-priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
 
-    vector<int> dist(v,INT_MAX) ;
+    vector<int> dist(v, INT_MAX);
 
-    dist[src]=0 ; 
+    dist[src] = 0;
 
-    pq.push({0,src}) ;
+    pq.push({0, src});
 
-    while(!pq.empty()) {
+    while (!pq.empty())
+    {
 
-     int u = pq.top().second ;
-     pq.pop() ; 
+        int u = pq.top().second;
+        pq.pop();
 
-     for(auto vertex: adjlist[u]){
-       if(dist[vertex.first]>dist[u]+vertex.second){
-        dist[vertex.first]=dist[u]+vertex.second ; 
-        pq.push({dist[vertex.first],vertex.first}) ;
-       }
-     }
-
-
+        for (auto vertex : adjlist[u])
+        {
+            if (dist[vertex.first] > dist[u] + vertex.second)
+            {
+                dist[vertex.first] = dist[u] + vertex.second;
+                pq.push({dist[vertex.first], vertex.first});
+            }
+        }
     }
 
-  for(int i=0;i<v;i++) cout << dist[i] << " " ; 
-  cout << endl ;
-
+    for (int i = 0; i < v; i++)
+        cout << dist[i] << " ";
+    cout << endl;
 }
 
 int main()
@@ -78,8 +80,7 @@ int main()
     g.addEdge(4, 3, 2);
     g.addEdge(4, 5, 5);
 
-
-    dijkstra(0,6,g.adjlist);
+    dijkstra(0, 6, g.adjlist);
 
     return 0;
 }
