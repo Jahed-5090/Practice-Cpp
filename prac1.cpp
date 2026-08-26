@@ -26,8 +26,12 @@ public:
     }
 };
 
-void Dijkstra(vector<edge> edgelist, int src, int v)
+void Dijkstra(const vector<edge> &edgelist, int src, int v)
 {
+    // adj[u] holds the (neighbour, weight) pairs of the edges leaving u
+    vector<vector<pair<int, int>>> adj(v);
+    for (const auto &e : edgelist)
+        adj[e.u].push_back({e.v, e.w});
 
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
 
@@ -39,21 +43,35 @@ void Dijkstra(vector<edge> edgelist, int src, int v)
 
     while (!pq.empty())
     {
-        auto edge = pq.top();
+        auto [d, u] = pq.top();
         pq.pop();
-        for (auto &e : edgelist)
+
+        // stale entry: u was already settled through a shorter path
+        if (d > dist[u])
+            continue;
+
+        // relax only u's own neighbours; d is finite, so d + w cannot overflow
+        for (const auto &[to, w] : adj[u])
         {
-            if (dist[e.v] > dist[e.u] + e.w)
+            if (d + w < dist[to])
             {
-                dist[e.v] = dist[e.u] + e.w;
-                pq.push({dist[e.v], e.v});
+                dist[to] = d + w;
+                pq.push({dist[to], to});
             }
         }
     }
+
+    cout << "Distance of vertices from source: " << src << endl;
+
     for (int i = 0; i < v; i++)
-        cout << dist[i] << " ";
+    {
+        if (dist[i] == INT_MAX)
+            cout << i << " : INF" << endl;
+        else
+            cout << i << " : " << dist[i] << endl;
+    }
     cout << endl;
-} 
+}
  
 void bellmanFord(vector<edge> edgelist,int src,int v) {
 
@@ -88,8 +106,8 @@ void bellmanFord(vector<edge> edgelist,int src,int v) {
 
 int main()
 {
-    
-    weightedGraph g ; 
+
+    weightedGraph g ;
     g.addEdge(1,2, 6);
     g.addEdge(1, 3, 2);
     g.addEdge(3, 2, -2);
@@ -98,8 +116,11 @@ int main()
     g.addEdge(3, 4, 4);
     g.addEdge(4, 5, 3);
 
-    bellmanFord(g.edgelist,1,4) ;
-    
+    // vertices are labelled 1..5, so size the arrays for 6 slots (index 0 unused).
+    // NOTE: this graph has negative weights, which Dijkstra does not support --
+    // use bellmanFord for it, or make every weight non-negative.
+    Dijkstra(g.edgelist, 1, 6);
+
 
     return 0;
 }
