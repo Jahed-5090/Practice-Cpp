@@ -1,12 +1,13 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/* 
-Dijkstra's Algorithm->Adjacency List way better than edgelist .
+/*
+Dijkstra's Algorithm -> Adjacency List way better than edgelist .
 defualt priority_queue  in cpp is max_heap.
 normal max priority_queue : priority_queue<data_type> pq ;
 min priority_queue :        priority_queue<int,vector<int>,greater<int>> pq
 */
+
 
 class WeightedGrpah
 {
@@ -44,7 +45,10 @@ void dijkstra(int src, int v, map<int, vector<pair<int, int>>> &adjlist)
 
     dist[src] = 0;
 
-    pq.push({0, src});
+    pq.push({0, src}); 
+
+     // pair in adjlist -> v,w
+     // priority_queue -> dist(u),u 
 
     while (!pq.empty())
     {
