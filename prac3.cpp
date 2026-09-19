@@ -1,173 +1,121 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-const int INF = INT_MAX / 2;
+/*
+Dijkstra's Algorithm -> Adjacency List way better than edgelist .
+defualt priority_queue  in cpp is max_heap.
+normal max priority_queue : priority_queue<data_type> pq ;
+min priority_queue :        priority_queue<int,vector<int>,greater<int>> pq
+*/
 
-// ==========================================
-// 1. DATA STRUCTURES (Pure Data Representation)
-// ==========================================
-
-struct Edge {
-    int u, v, w;
-};
-
-class WeightedGraph {
+class WeightedGrpah
+{
 public:
-    int V;
-    vector<Edge> edgelist;
+    map<int, vector<pair<int, int>>> adjlist;
 
-    WeightedGraph(int V) : V(V) {}
+    void addEdge(int u, int v, int w, bool directed = false)
+    {
+        adjlist[u].push_back({v, w});
+        if (!directed)
+            adjlist[v].push_back({u, w});
+    }
 
-    void addEdge(int u, int v, int w) {
-        edgelist.push_back({u, v, w});
+    void print()
+    {
+        cout << endl;
+        for (auto [vertex, neighbours] : adjlist)
+        {
+            cout << vertex << "->" << endl;
+            for (auto [neighbour, w] : neighbours)
+            {
+                cout << "( " << neighbour << "," << w << " )" << endl;
+            }
+            cout << endl;
+        }
     }
 };
 
-// ==========================================
-// 2. ALGORITHMS (Decoupled Operations)
-// ==========================================
-
-namespace GraphAlgorithms {
-
-    // Helper function to recursively print the path
-    void printPath(int v, const vector<int>& parent) {
-        if (v == -1) return;
-        printPath(parent[v], parent);
-        cout << v << " ";
+void printPath(int src, int dest, vector<int> &parent)
+{
+    // dest is unreachable from src
+    if (parent[dest] == -1 && dest != src)
+    {
+        cout << "No path exists\n";
+        return;
     }
 
-    // Standard Bellman-Ford (returns false if negative cycle exists)
-    bool bellmanFord(int V, const vector<Edge>& edges, int src, vector<int>& h) {
-        h.assign(V, INF);
-        h[src] = 0;
+    vector<int> path;
+    for (int v = dest; v != -1; v = parent[v])
+        path.push_back(v);
 
-        for (int i = 0; i < V - 1; i++) {
-            for (const auto& e : edges) {
-                if (h[e.u] != INF && h[e.u] + e.w < h[e.v]) {
-                    h[e.v] = h[e.u] + e.w;
-                }
-            }
-        }
+    reverse(path.begin(), path.end()); // walked backward, so reverse to get src -> dest order
 
-        for (const auto& e : edges) {
-            if (h[e.u] != INF && h[e.u] + e.w < h[e.v]) {
-                return false;
-            }
-        }
-        return true;
+    for (int i = 0; i < (int)path.size(); i++)
+    {
+        cout << path[i];
+        if (i != (int)path.size() - 1)
+            cout << " -> ";
     }
+    cout << endl;
+}
 
-    // Standard Dijkstra (modified to track parent nodes)
-    void dijkstra(int V, const vector<vector<pair<int,int>>>& adj, int src, vector<int>& dist, vector<int>& parent) {
-        dist.assign(V, INF);
-        parent.assign(V, -1);
-        dist[src] = 0;
+void dijkstra(int src, int v, map<int, vector<pair<int, int>>> &adjlist)
+{
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
 
-        priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> pq;
-        pq.push({0, src});
+    vector<int> dist(v, INT_MAX);
+    vector<int> parent(v, -1); // parent[i] = vertex we came from to reach i on the shortest path
 
-        while (!pq.empty()) {
-            auto [d, u] = pq.top();
-            pq.pop();
-            
-            if (d > dist[u]) continue;
+    dist[src] = 0;
+    pq.push({0, src});
 
-            for (const auto& edge : adj[u]) {
-                int v = edge.first;
-                int weight = edge.second;
+    // pair in adjlist -> v,w
+    // priority_queue -> dist(u),u
 
-                if (dist[u] + weight < dist[v]) {
-                    dist[v] = dist[u] + weight;
-                    parent[v] = u; // Track where we came from
-                    pq.push({dist[v], v});
-                }
+    while (!pq.empty())
+    {
+        auto [d, u] = pq.top();
+        pq.pop();
+
+        if (d > dist[u]) continue; // stale entry, skip
+
+        for (auto vertex : adjlist[u])
+        {
+            int to = vertex.first, w = vertex.second;
+            if (dist[to] > dist[u] + w)
+            {
+                dist[to] = dist[u] + w;
+                parent[to] = u; // record: shortest path to `to` currently goes through u
+                pq.push({dist[to], to});
             }
         }
     }
 
-    // The core Johnson's logic coordinating the subroutines
-    void johnson(const WeightedGraph& g) {
-        int V = g.V;
-        int virtual_src = V; 
+    for (int i = 0; i < v; i++)
+        cout << "dist[" << i << "] = " << dist[i] << endl;
 
-        // Step 1: Augment graph
-        vector<Edge> augmented = g.edgelist;
-        for (int i = 0; i < V; i++) {
-            augmented.push_back({virtual_src, i, 0});
-        }
-
-        // Step 2: Bellman-Ford
-        vector<int> h;
-        if (!bellmanFord(V + 1, augmented, virtual_src, h)) {
-            cout << "Graph contains a negative weight cycle. Johnson's algorithm cannot proceed.\n";
-            return;
-        }
-
-        // Step 3: Reweight edges & build adjacency list
-        vector<vector<pair<int,int>>> reweightedAdj(V);
-        for (const auto& e : g.edgelist) {
-            int newW = e.w + h[e.u] - h[e.v];
-            reweightedAdj[e.u].push_back({e.v, newW});
-        }
-
-        // Step 4 & 5: Dijkstra and Matrix Construction
-        vector<vector<int>> shortest_dists(V, vector<int>(V, INF));
-        vector<vector<int>> all_parents(V, vector<int>(V, -1));
-
-        for (int src = 0; src < V; src++) {
-            vector<int> dist, parent;
-            dijkstra(V, reweightedAdj, src, dist, parent);
-
-            for (int dst = 0; dst < V; dst++) {
-                if (dist[dst] < INF) {
-                    shortest_dists[src][dst] = dist[dst] - h[src] + h[dst];
-                }
-            }
-            all_parents[src] = parent;
-        }
-
-        // --- Output Generation ---
-        
-        cout << "1. All-Pairs Shortest Distances:\n\n";
-        cout << setw(6) << " ";
-        for (int j = 0; j < V; j++) cout << setw(6) << j;
-        cout << "\n";    
-        for (int i = 0; i < V; i++) {
-            cout << setw(6) << i;
-            for (int j = 0; j < V; j++) {
-                if (shortest_dists[i][j] >= INF) cout << setw(6) << "INF";
-                else cout << setw(6) << shortest_dists[i][j];
-            }
-            cout << "\n";
-        }
-
-        cout << "\n\n2. Shortest Paths Routing:\n\n";
-        for (int i = 0; i < V; i++) {
-            for (int j = 0; j < V; j++) {
-                if (i != j && shortest_dists[i][j] < INF) {
-                    cout << "Path " << i << " -> " << j << " (cost: " << setw(2) << shortest_dists[i][j] << ") : ";
-                    printPath(j, all_parents[i]);
-                    cout << "\n";
-                }
-            }
-        }
+    cout << "\nPaths from source " << src << ":\n";
+    for (int i = 0; i < v; i++)
+    {
+        cout << src << " to " << i << ": ";
+        printPath(src, i, parent);
     }
 }
 
-// ==========================================
-// 3. MAIN EXECUTION
-// ==========================================
+int main()
+{
+    WeightedGrpah g;
 
-int main() {
-    WeightedGraph g(4);
-    g.addEdge(0, 1, -5);
-    g.addEdge(0, 2, 2);
-    g.addEdge(0, 3, 3);
-    g.addEdge(1, 2, 4);
-    g.addEdge(2, 3, 1);
-    g.addEdge(3, 1, 6);
+    g.addEdge(0, 1, 4);
+    g.addEdge(0, 2, 8);
+    g.addEdge(1, 4, 6);
+    g.addEdge(1, 2, 3);
+    g.addEdge(2, 3, 2);
+    g.addEdge(3, 4, 10);
+   // g.addEdge(4, 3, 2);
+    //g.addEdge(4, 5, 5);
 
-    GraphAlgorithms::johnson(g);
+    dijkstra(0, 5, g.adjlist);
 
     return 0;
 }

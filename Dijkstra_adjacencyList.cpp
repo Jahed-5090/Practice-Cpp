@@ -8,7 +8,6 @@ normal max priority_queue : priority_queue<data_type> pq ;
 min priority_queue :        priority_queue<int,vector<int>,greater<int>> pq
 */
 
-
 class WeightedGrpah
 {
 public:
@@ -42,13 +41,14 @@ void dijkstra(int src, int v, map<int, vector<pair<int, int>>> &adjlist)
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
 
     vector<int> dist(v, INT_MAX);
+    vector<int> par(v, -1);
 
     dist[src] = 0;
 
-    pq.push({0, src}); 
+    pq.push({0, src});
 
-     // pair in adjlist -> v,w
-     // priority_queue -> dist(u),u 
+    // pair in adjlist -> v,w
+    // priority_queue -> dist(u),u
 
     while (!pq.empty())
     {
@@ -62,12 +62,17 @@ void dijkstra(int src, int v, map<int, vector<pair<int, int>>> &adjlist)
             {
                 dist[vertex.first] = dist[u] + vertex.second;
                 pq.push({dist[vertex.first], vertex.first});
+                par[vertex.first] = u;
             }
         }
     }
 
     for (int i = 0; i < v; i++)
         cout << dist[i] << " ";
+    cout << endl;
+   
+    for (int i = 0; i < v; i++)
+        cout << par[i] << " ";
     cout << endl;
 }
 
