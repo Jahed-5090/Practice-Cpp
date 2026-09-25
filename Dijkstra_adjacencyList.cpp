@@ -35,16 +35,38 @@ public:
     }
 };
 
+void printPath(int src, int dest, vector<int> &parent)
+{
+    // dest is unreachable from src
+    if (parent[dest] == -1 && dest != src)
+    {
+        cout << "No path exists\n";
+        return;
+    }
+
+    vector<int> path;
+    for (int v = dest; v != -1; v = parent[v])
+        path.push_back(v);
+
+    reverse(path.begin(), path.end()); // walked backward, so reverse to get src -> dest order
+
+    for (int i = 0; i < (int)path.size(); i++)
+    {
+        cout << path[i];
+        if (i != (int)path.size() - 1)
+            cout << " -> ";
+    }
+    cout << endl;
+}
+
 void dijkstra(int src, int v, map<int, vector<pair<int, int>>> &adjlist)
 {
-
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
 
     vector<int> dist(v, INT_MAX);
-    vector<int> par(v, -1);
+    vector<int> parent(v, -1); // parent[i] = vertex we came from to reach i on the shortest path
 
     dist[src] = 0;
-
     pq.push({0, src});
 
     // pair in adjlist -> v,w
@@ -52,28 +74,32 @@ void dijkstra(int src, int v, map<int, vector<pair<int, int>>> &adjlist)
 
     while (!pq.empty())
     {
-
-        int u = pq.top().second;
+        auto [d, u] = pq.top();
         pq.pop();
+
+        if (d > dist[u]) continue; // stale entry, skip
 
         for (auto vertex : adjlist[u])
         {
-            if (dist[vertex.first] > dist[u] + vertex.second)
+            int to = vertex.first, w = vertex.second;
+            if (dist[to] > dist[u] + w)
             {
-                dist[vertex.first] = dist[u] + vertex.second;
-                pq.push({dist[vertex.first], vertex.first});
-                par[vertex.first] = u;
+                dist[to] = dist[u] + w;
+                parent[to] = u; // record: shortest path to `to` currently goes through u
+                pq.push({dist[to], to});
             }
         }
     }
 
     for (int i = 0; i < v; i++)
-        cout << dist[i] << " ";
-    cout << endl;
-   
+        cout << "dist[" << i << "] = " << dist[i] << endl;
+
+    cout << "\nPaths from source " << src << ":\n";
     for (int i = 0; i < v; i++)
-        cout << par[i] << " ";
-    cout << endl;
+    {
+        cout << src << " to " << i << ": ";
+        printPath(src, i, parent);
+    }
 }
 
 int main()

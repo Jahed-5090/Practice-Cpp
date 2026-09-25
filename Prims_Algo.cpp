@@ -75,7 +75,7 @@ int main()
      g.addEdge(0, 3, 30);
      g.addEdge(1, 3, 40);
      g.addEdge(3, 2, 50);
-     MST(0, v, g.adjlist);
+     MST(2, v, g.adjlist);
 
      return 0;
 }
