@@ -1,83 +1,56 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+struct Edge
+{
+     int u, v, w;
+};
+
 class DSU
 {
-
 public:
-     int n;
      vector<int> parent, rank;
 
      DSU(int n)
      {
-          this->n = n;
-          parent.resize(n, 0);
-          rank.resize(n, 0);
+          parent.resize(n);
+          rank.assign(n, 0);
 
           for (int i = 0; i < n; i++)
                parent[i] = i;
      }
 
-     void UnionByRank(int a, int b)
-     {
-
-          int parA = findParent(a);
-          int parB = findParent(b);
-
-          if (parA == parB)
-               return;
-
-          if (rank[parA] == rank[parB])
-          {
-               parent[parB] = parA;
-               rank[parA]++;
-          }
-          else if (rank[parA] > rank[parB])
-          {
-               parent[parB] = parA;
-          }
-          else
-          {
-               parent[parA] = parB;
-          }
-     }
-
      int findParent(int x)
      {
           if (parent[x] == x)
-          {
-               return parent[x];
-          }
+               return x;
+
           return parent[x] = findParent(parent[x]);
      }
 
-     void printParent()
+     void unionByRank(int a, int b)
      {
-          cout << "Parent : ";
-          for (int i = 0; i < n; i++)
-          {
-               cout << parent[i] << " ";
-          }
-          cout << endl;
-          cout << "Rank : ";
-          for (int i = 0; i < n; i++)
-          {
-               cout << rank[i] << " ";
-          }
-          cout << endl;
-     }
-};
+          int pa = findParent(a);
+          int pb = findParent(b);
 
-struct edge
-{
-     int u, v, w;
+          if (pa == pb)
+               return;
+
+          if (rank[pa] < rank[pb])
+               swap(pa, pb);
+
+          parent[pb] = pa;
+
+          if (rank[pa] == rank[pb])
+               rank[pa]++;
+     }
 };
 
 class Graph
 {
 public:
      int V;
-     vector<edge> edgelist;
+     vector<Edge> edges;
 
      Graph(int v)
      {
@@ -86,44 +59,41 @@ public:
 
      void addEdge(int u, int v, int w)
      {
-          edgelist.push_back({u, v, w});
+          edges.push_back({u, v, w});
      }
 
-     void Krushkal()
+     void kruskalMST()
      {
-          sort(edgelist.begin(), edgelist.end(), [](edge &a, edge &b)
-               { return a.w < b.w; }); 
+          sort(edges.begin(), edges.end(), [](const Edge &a, const Edge &b)
+               { return a.w < b.w; });
 
           DSU dsu(V);
+          int mstWeight = 0;
 
-          int mstwt = 0;
-
-          vector<int> parent(V);
-
-          for (auto &it : edgelist)
+          cout << "Edges in MST:\n";
+          for (auto &edge : edges)
           {
-               int u = it.u;
-               int v = it.v;
-               int w = it.w;
+               int u = edge.u;
+               int v = edge.v;
+               int w = edge.w;
 
-               int parU = dsu.findParent(u);
-               int parV = dsu.findParent(v);
-
-               if (parU != parV)
+               if (dsu.findParent(u) != dsu.findParent(v))
                {
-                    mstwt += w;
-                    cout << u << "->" << v <<" w : " << w <<  endl;
-                    dsu.UnionByRank(u, v);
+                    dsu.unionByRank(u, v);
+                    mstWeight += w;
+                    cout << u << " -> " << v << " (weight " << w << ")\n";
                }
           }
-          cout << mstwt << endl;
+
+          cout << "Total MST weight: " << mstWeight << endl;
      }
 };
 
 int main()
 {
-     int v = 9;
-     Graph g(v);
+     int V = 9;
+     Graph g(V);
+
      g.addEdge(0, 1, 4);
      g.addEdge(0, 7, 8);
      g.addEdge(1, 2, 8);
@@ -139,7 +109,7 @@ int main()
      g.addEdge(6, 8, 6);
      g.addEdge(7, 8, 7);
 
-     g.Krushkal();
+     g.kruskalMST();
 
      return 0;
 }

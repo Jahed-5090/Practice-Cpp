@@ -1,74 +1,93 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef pair<int, int> pii; // (weight, vertex)
+typedef pair<int, int> pii;
 
-void maxSpanningTree(int src, int V, map<int, vector<pair<int, int>>> &adjlist)
+class Graph
 {
-    vector<bool> visited(V, false);
-    vector<int> key(V, INT_MIN); // CHANGED: start at -infinity, since we now want the MAXIMUM edge
-    vector<int> parent(V, -1);
+public:
+    int V;
+    unordered_map<int, vector<pair<int, int>>> adjlist;
 
-    priority_queue<pii> pq; // CHANGED: default priority_queue is already a max-heap, so drop the greater<> comparator
+    Graph(int v) : V(v) {}
 
-    key[src] = 0;
-    pq.push({0, src});
-
-    int mstCost = 0;
-
-    while (!pq.empty())
+    void addEdge(int u, int v, int w)
     {
-        int u = pq.top().second;
-        pq.pop();
+        adjlist[u].push_back({v, w});
+        adjlist[v].push_back({u, w});
+    }
 
-        if (visited[u])
-            continue;
+    void maxST(int src)
+    {
+        unordered_map<int, bool> visited;
+        unordered_map<int, int> parent, key;
 
-        visited[u] = true;
-        mstCost += key[u];
+        priority_queue<pii> pq;
 
-        for (auto edge : adjlist[u])
+        for (auto &[vertex, weight] : adjlist)
         {
-            int v = edge.first;
-            int w = edge.second;
+            parent[vertex] = -1;
+            visited[vertex] = false;
+            key[vertex] = INT_MIN;
+        }
 
-            // CHANGED: w > key[v] instead of w < key[v] -- we want the LARGEST edge into v
-            if (!visited[v] && w > key[v])
+        key[src] = 0;
+
+        pq.push({0, src});
+
+        int mstcost = 0;
+
+        while (!pq.empty())
+        {
+
+            int u = pq.top().second;
+            pq.pop();
+            if (visited[u])
+                continue;
+
+            mstcost += key[u];
+            visited[u] = true;
+
+            for (auto &x : adjlist[u])
             {
-                key[v] = w;
-                parent[v] = u;
-                pq.push({w, v});
+                int v = x.first;
+                int w = x.second;
+
+                if (!visited[v] && w > key[v])
+                {
+                    key[v] = w;
+                    parent[v] = u;
+                    pq.push({w, v});
+                }
             }
         }
-    }
+        cout << "MST Cost : " << mstcost << endl;
 
-    cout << "\n\nMaximum Cost from source: " << src << " is -> " << mstCost << endl << endl;
+        cout << "Printing the path : \n";
 
-    cout << "Edge \tWeight\n";
-    for (int i = 0; i < V; i++)
-    {
-        if (parent[i] != -1)
-            cout << parent[i] << " - " << i << " \t" << key[i] << " \n";
+        for (int i = 0; i < V; i++)
+        {
+            if (parent[i] != -1)
+            {
+                cout << "Path : " << parent[i] << "-" << i << " W : " << key[i] << endl;
+            }
+        }
+        cout << endl;
     }
-    cout << endl;
-}
+};
 
 int main()
 {
-    map<int, vector<pair<int,int>>> adjlist;
-    auto addEdge = [&](int u, int v, int w) {
-        adjlist[u].push_back({v, w});
-        adjlist[v].push_back({u, w});
-    };
 
     int v = 4;
-    addEdge(0, 1, 10);
-    addEdge(0, 2, 15);
-    addEdge(0, 3, 30);
-    addEdge(1, 3, 40);
-    addEdge(3, 2, 50);
+    Graph g(v);
 
-    maxSpanningTree(2, v, adjlist);
+    g.addEdge(0, 1, 10);
+    g.addEdge(0, 2, 15);
+    g.addEdge(0, 3, 30);
+    g.addEdge(1, 3, 40);
+    g.addEdge(3, 2, 50);
+    g.maxST(2);
 
     return 0;
 }

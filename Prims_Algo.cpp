@@ -1,81 +1,90 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef pair<int, int> pii; // (weight, vertex)
-
 class Graph
 {
 public:
-     map<int, vector<pair<int, int>>> adjlist;
+    map<int, vector<pair<int, int>>> adjlist;
 
-     void addEdge(int u, int v, int w)
-     {
-          adjlist[u].push_back({v, w});
-          adjlist[v].push_back({u, w});
-     }
+    void addEdge(int u, int v, int w)
+    {
+        adjlist[u].push_back({v, w});
+        adjlist[v].push_back({u, w});
+    }
 };
 
-void MST(int src, int V, map<int, vector<pair<int, int>>> &adjlist)
+void MST(int V, int src, map<int, vector<pair<int, int>>> &adjlist)
 {
-     vector<bool> visited(V, false);
-     vector<int> key(V, INT_MAX); // best known edge weight into each vertex
-     vector<int> parent(V, -1);   // vertex that gives that best edge
 
-     priority_queue<pii, vector<pii>, greater<pii>> pq;
+    unordered_map<int, int> parent;
+    unordered_map<int, int> key;
+    unordered_map<int, bool> visited;
 
-     key[src] = 0;
-     pq.push({0, src});
+    for (auto &[vertex, neighbours] : adjlist)
+    {
+        key[vertex] = INT_MAX;
+        parent[vertex] = -1;
+        visited[vertex] = false;
+    }
 
-     int mstCost = 0;
+    int mstcost = 0;
 
-     while (!pq.empty())
-     {
-          int u = pq.top().second;
-          pq.pop();
+    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
 
-          if (visited[u])
-               continue;
+    key[src] = 0;
 
-          visited[u] = true;
-          mstCost += key[u];
+    pq.push({0, src}); // weight, vertex
 
-          for (auto edge : adjlist[u])
-          {
-               int v = edge.first;
-               int w = edge.second;
+    while (!pq.empty())
+    {
 
-               // relax: only update if v is unvisited and this edge beats its current best
-               if (!visited[v] && w < key[v])
-               {
-                    key[v] = w;
-                    parent[v] = u;
-                    pq.push({w, v});
-               }
-          }
-     }
+        int u = pq.top().second;
+        pq.pop();
 
-     cout << "\n\nMinimum Cost from source : " << src << " is -> " << mstCost << endl
-          << endl;
+        if (visited[u])
+            continue;
 
-     cout << "Edge \tWeight\n";
-     for (int i = 0; i < V; i++)
-     {
-          if (parent[i] != -1)
-               cout << parent[i] << " - " << i << " \t" << key[i] << " \n";
-     }
-     cout << endl;
+        visited[u] = true;
+        mstcost += key[u];
+
+        for (auto x : adjlist[u])
+        {
+            int v = x.first;
+            int w = x.second;
+
+            if (!visited[v] && w < key[v])
+            {
+                pq.push({w, v});
+                parent[v] = u;
+                key[v] = w;
+            }
+        }
+    }
+    cout << "MST Cost : " << mstcost << endl;
+
+    cout << "Printing the path : \n";
+
+    for (int i = 0; i < V; i++)
+    {
+        if (parent[i] != -1)
+        {
+            cout << "Path : " << parent[i] << "-" << i << " W : " << key[i] << endl;
+        }
+    }
+    cout << endl;
 }
 
 int main()
 {
-     Graph g;
-     int v = 4;
-     g.addEdge(0, 1, 10);
-     g.addEdge(0, 2, 15);
-     g.addEdge(0, 3, 30);
-     g.addEdge(1, 3, 40);
-     g.addEdge(3, 2, 50);
-     MST(2, v, g.adjlist);
 
-     return 0;
+    Graph g;
+    int v = 4;
+    g.addEdge(0, 1, 10);
+    g.addEdge(0, 2, 15);
+    g.addEdge(0, 3, 30);
+    g.addEdge(1, 3, 40);
+    g.addEdge(3, 2, 50);
+    MST(v, 0, g.adjlist);
+
+    return 0;
 }
