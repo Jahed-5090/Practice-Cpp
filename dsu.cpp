@@ -3,7 +3,6 @@ using namespace std;
 
 class DSU
 {
-
 public:
      int n;
      vector<int> parent, rank;
